@@ -1,9 +1,6 @@
 import argparse
 import ast
 import logging
-import os
-import pickle
-import shutil
 import sys
 
 import random
@@ -22,9 +19,12 @@ from fl_market.scenarios.no_competition import run_no_competition
 from fl_market.scenarios.competition import run_competition
 from fl_market.scenarios.collaboration import run_collaboration
 
+
 def get_aggregation_technique(name):
     mapping = {"fed_avg": fed_avg}
     return mapping[name]
+
+
 class PrintLogger:
     """Redirect `print` to logging."""
 
@@ -57,8 +57,8 @@ def print_results(dcs, run_name):
         print(f"{run_name}_DC_{dc.id}")
         print("VAL: ", dc.val_performances)
         print("TEST: ", dc.test_performances)
-        #print("DETAILED: ")
-        #print(dc.eval_detailed())
+        # print("DETAILED: ")
+        # print(dc.eval_detailed())
         print()
     print()
 
@@ -68,12 +68,12 @@ def parse_hyperparameters():
         description="Parse command line arguments for hyperparameters."
     )
 
-    """parser.add_argument(
-        "-do_assignment",
+    parser.add_argument(
+        "-data_path",
         type=str,
-        help="DO assignment type (e.g. fixed_number)",
-        required=False,
-    )"""
+        help="Path where datasets are stored.",
+        required=True,
+    )
 
     parser.add_argument(
         "-result_path",
@@ -94,7 +94,8 @@ def parse_hyperparameters():
         type=str,
         choices=["loss", "accuracy", "contrloss", "greedy_acc"],
         help="Evaluate DC models based on loss or accuracy",
-        required=True,
+        default="contrloss",
+        required=False,
     )
     parser.add_argument(
         "-aggregation", type=str, help="Aggregation method", required=True
@@ -152,12 +153,6 @@ def parse_hyperparameters():
         help="Alpha parameter for in-group dirichlet partitioning",
         required=True,
     )"""
-    parser.add_argument(
-        "-fed_prox_mu",
-        type=float,
-        help="Mu parameter when fedprox should be used",
-        required=True,
-    )
     parser.add_argument("-ekd_lr", type=float, help="EKD learning rate", required=True)
     parser.add_argument(
         "-ekd_batch_size", type=int, help="EKD Batch size", required=True
@@ -184,9 +179,6 @@ def parse_hyperparameters():
     # Post-process the string representations of complex types
     hyperparameters["seeds"] = ast.literal_eval(hyperparameters["seeds"])
     hyperparameters["partitioning"] = ast.literal_eval(hyperparameters["partitioning"])
-    hyperparameters["fed_prox_mu"] = (
-        None if hyperparameters["fed_prox_mu"] <= 0 else hyperparameters["fed_prox_mu"]
-    )
 
     return hyperparameters
 
@@ -200,7 +192,7 @@ def print_hyperparameters():
 
 # RUN
 
-DEVICE = torch.device("cuda")  # Try "cuda" to train on GPU / "cpu" for CPU
+DEVICE = torch.device("cuda")  # "cuda" to train on GPU / "cpu" for CPU
 print(f"Training on {DEVICE}")
 print(f"PyTorch {torch.__version__}")
 
@@ -212,7 +204,7 @@ elif hps["aggregation"] == "fed_df":
     hps["aggregation"] = fed_df
 else:
     print("INVALID ARGUMENT: aggregation")
-
+hps["fed_prox_mu"] = 0.0
 
 dt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 RUNID = dt
@@ -227,8 +219,8 @@ setup_logging(RUNID)
 # Store the test performances after every FL round in every scenario
 
 print("Loading data...")
-dataset = load_dataset(hps["dataset"])
-testset = load_testset(hps["dataset"])
+dataset = load_dataset(hps["dataset"], hps["data_path"])
+testset = load_testset(hps["dataset"], hps["data_path"])
 
 enable_logging()
 

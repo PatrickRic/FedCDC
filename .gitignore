@@ -1,2 +1,9 @@
 # macOS Finder metadata
 .DS_Store
+
+# Python byte-code caches
+__pycache__/
+*.py[cod]
+
+# Datasets
+datasets/

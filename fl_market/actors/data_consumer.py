@@ -70,8 +70,7 @@ class DataConsumer:
 
         return acc, loss
 
-
-    # Evaluates contribution of a DO based on leave-on-out loss
+    # Evaluates contribution of a DO based on leave-one-out loss
     # FL_Results: List((do_id, model, n_samples))
     def evaluate_contribution(self, fl_results, base_results, do_id):
         m_loo = self.aggregate_fit(
@@ -166,7 +165,11 @@ class DataConsumer:
         # unique DOs that are not competed for to prevent bias
 
         filtered_training_results = training_results
-        if (self.score_metric == "accuracy" or self.score_metric == "greedy_acc") and self.is_in_competition and self.aggregation_method != fed_df:
+        if (
+            (self.score_metric == "accuracy" or self.score_metric == "greedy_acc")
+            and self.is_in_competition
+            and self.aggregation_method != fed_df
+        ):
             filtered_training_results = self.filter_training_results(
                 filtered_training_results,
                 dos_unique,
