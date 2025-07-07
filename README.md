@@ -1,6 +1,6 @@
 # FedCDC: A Collaborative Framework for Data Consumers in Federated Learning Markets
 
-This repository contains the code for the paper titled **[FedCDC: A Collaborative Framework for Data Consumers in Federated Learning Markets]**.
+This repository contains the code for the paper titled **FedCDC: A Collaborative Framework for Data Consumers in Federated Learning Markets**.
 
 ## Requirements
 To replicate the results or run the code, you will need the following:
